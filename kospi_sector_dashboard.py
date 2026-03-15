@@ -32,6 +32,21 @@ st.markdown("""
          crossorigin="anonymous"></script>
 """, unsafe_allow_html=True)
 
+# Streamlit 기본 UI 제거 (Cloudflare iframe 환경 대응)
+st.markdown("""
+    <style>
+    [data-testid="stHeader"]             { display: none !important; }
+    [data-testid="stToolbar"]            { display: none !important; }
+    [data-testid="stDecoration"]         { display: none !important; }
+    [data-testid="stStatusWidget"]       { display: none !important; }
+    [data-testid="stMainBlockContainer"] { padding-top: 0rem !important; }
+    footer                               { display: none !important; }
+    #MainMenu                            { display: none !important; }
+    .modebar                             { display: none !important; }
+    .viewerBadge_container__r5tak        { display: none !important; }
+    </style>
+""", unsafe_allow_html=True)
+
 # ========================================================================================
 # 한국 섹터 및 대표종목 정의 (이모지 포함)
 # 첫 번째 종목이 대표종목 (기본 선택됨)
