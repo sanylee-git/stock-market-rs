@@ -35,15 +35,32 @@ st.markdown("""
 # Streamlit 기본 UI 제거 (Cloudflare iframe 환경 대응)
 st.markdown("""
     <style>
-    [data-testid="stHeader"]             { display: none !important; }
-    [data-testid="stToolbar"]            { display: none !important; }
-    [data-testid="stDecoration"]         { display: none !important; }
-    [data-testid="stStatusWidget"]       { display: none !important; }
-    [data-testid="stMainBlockContainer"] { padding-top: 0rem !important; }
-    footer                               { display: none !important; }
-    #MainMenu                            { display: none !important; }
-    .modebar                             { display: none !important; }
-    .viewerBadge_container__r5tak        { display: none !important; }
+    /* 헤더 / 툴바 / 데코레이션 */
+    [data-testid="stHeader"]                  { display: none !important; }
+    [data-testid="stToolbar"]                 { display: none !important; }
+    [data-testid="stDecoration"]              { display: none !important; }
+    [data-testid="stStatusWidget"]            { display: none !important; }
+    #MainMenu                                 { display: none !important; }
+
+    /* 하단 footer ("Built with Streamlit") */
+    footer                                    { display: none !important; }
+    [data-testid="stBottom"]                  { display: none !important; }
+
+    /* embed 모드 전용 오버레이 (Fullscreen 버튼 포함) */
+    [data-testid="embeddedAppMetaInfoBar"]    { display: none !important; }
+    [class*="embeddedAppMetaInfoBar"]         { display: none !important; }
+    [class*="EmbedToolbar"]                   { display: none !important; }
+
+    /* 흰색 배경 제거 */
+    .stApp                                    { background-color: #0D0D0E !important; }
+    [data-testid="stAppViewContainer"]        { background-color: #0D0D0E !important; }
+    [data-testid="stVerticalBlock"]           { background-color: transparent !important; }
+
+    /* 상단 여백 제거 */
+    [data-testid="stMainBlockContainer"]      { padding-top: 0rem !important; }
+
+    /* Plotly modebar */
+    .modebar                                  { display: none !important; }
     </style>
 """, unsafe_allow_html=True)
 
