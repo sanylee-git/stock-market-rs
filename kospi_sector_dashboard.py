@@ -1982,7 +1982,7 @@ def main():
                 display_prev = ranking_prev[['순위', '섹터', '종목', '상대수익률', '수익률', '상태']].copy()
                 display_prev.index = range(1, len(display_prev) + 1)
 
-                styled_prev = display_prev.style.applymap(
+                styled_prev = display_prev.style.map(
                     color_relative, subset=['상대수익률']
                 ).format({
                     '상대수익률': '{:+.1f}%p',
@@ -2003,11 +2003,11 @@ def main():
                 display_now = ranking_now[now_cols].copy()
                 display_now.index = range(1, len(display_now) + 1)
 
-                styler = display_now.style.applymap(
+                styler = display_now.style.map(
                     color_relative, subset=['상대수익률']
                 )
                 if '변동' in display_now.columns:
-                    styler = styler.applymap(color_change, subset=['변동'])
+                    styler = styler.map(color_change, subset=['변동'])
                 styler = styler.format({
                     '상대수익률': '{:+.1f}%p',
                     '수익률': '{:+.1f}%',
@@ -2027,7 +2027,7 @@ def main():
                 display_now = ranking_now[['순위', '섹터', '종목', '상대수익률', '수익률', '상태']].copy()
                 display_now.index = range(1, len(display_now) + 1)
 
-                styled_now = display_now.style.applymap(
+                styled_now = display_now.style.map(
                     color_relative, subset=['상대수익률']
                 ).format({
                     '상대수익률': '{:+.1f}%p',
