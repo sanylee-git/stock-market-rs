@@ -618,21 +618,62 @@ def _parse_yf_to_close(data, tickers):
         return pd.DataFrame()
     if len(tickers) == 1:
         if isinstance(data.columns, pd.MultiIndex):
-            data.columns = data.columns.get_level_values(0)
-        df = data[['Close']].copy()
-        df.columns = [tickers[0]]
+            # level 0 = field('Close'...) 인 경우 vs level 0 = ticker 인 경우 모두 처리
+            level0 = data.columns.get_level_values(0).unique().tolist()
+            if 'Close' in level0:
+                df = data['Close'].to_frame(name=tickers[0])
+            else:
+                data.columns = level0
+                df = data[['Close']].copy()
+                df.columns = [tickers[0]]
+        else:
+            df = data[['Close']].copy()
+            df.columns = [tickers[0]]
         df.index = pd.to_datetime(df.index).tz_localize(None)
         return df
+
+    # 다중 ticker: yfinance 버전에 따라 MultiIndex 방향이 다름
+    # group_by='ticker' → level 0 = ticker, level 1 = field
+    # group_by='column'  → level 0 = field, level 1 = ticker
     result = pd.DataFrame()
-    for ticker in tickers:
-        try:
-            if ticker in data.columns.get_level_values(0):
-                result[ticker] = data[ticker]['Close']
-        except:
-            pass
+    if isinstance(data.columns, pd.MultiIndex):
+        level0 = data.columns.get_level_values(0).unique().tolist()
+        if 'Close' in level0:
+            # level 0 = field 방향
+            for ticker in tickers:
+                try:
+                    if ticker in data.columns.get_level_values(1):
+                        result[ticker] = data['Close'][ticker]
+                except Exception:
+                    pass
+        else:
+            # level 0 = ticker 방향
+            for ticker in tickers:
+                try:
+                    if ticker in level0:
+                        result[ticker] = data[ticker]['Close']
+                except Exception:
+                    pass
     if not result.empty:
         result.index = pd.to_datetime(result.index).tz_localize(None)
     return result
+
+
+def _download_single(ticker, **kwargs):
+    """단일 ticker 다운로드 후 종가 Series 반환"""
+    try:
+        d = yf.download(ticker, progress=False, **kwargs)
+        if d.empty:
+            return None
+        if isinstance(d.columns, pd.MultiIndex):
+            d.columns = d.columns.get_level_values(0)
+        if 'Close' not in d.columns:
+            return None
+        s = d['Close'].copy()
+        s.index = pd.to_datetime(s.index).tz_localize(None)
+        return s
+    except Exception:
+        return None
 
 
 @st.cache_data(ttl=900)  # 15분마다 갱신 (오늘 데이터 빠른 반영)
@@ -647,17 +688,29 @@ def get_batch_stock_data(tickers_tuple, start_date, end_date):
                           progress=False, group_by='ticker', threads=True)
         result = _parse_yf_to_close(raw, tickers)
 
+        # 배치에서 누락된 ticker는 개별 다운로드로 fallback
+        missing = [t for t in tickers if t not in result.columns]
+        for t in missing:
+            s = _download_single(t, start=start_date, end=end_date)
+            if s is not None:
+                result[t] = s
+
         # 2) 최근 5거래일 데이터 보완 → 오늘 당일 종가 확보
         try:
             recent_raw = yf.download(tickers, period='5d', interval='1d',
                                      progress=False, group_by='ticker', threads=True)
             recent = _parse_yf_to_close(recent_raw, tickers)
+            # 최근 데이터도 fallback
+            missing_recent = [t for t in tickers if t not in recent.columns]
+            for t in missing_recent:
+                s = _download_single(t, period='5d', interval='1d')
+                if s is not None:
+                    recent[t] = s
             if not recent.empty:
-                # 과거 데이터에 없는 날짜만 추가 (중복 방지)
                 new_rows = recent[~recent.index.isin(result.index)]
                 if not new_rows.empty:
                     result = pd.concat([result, new_rows]).sort_index()
-        except:
+        except Exception:
             pass
 
         return result
