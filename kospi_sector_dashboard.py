@@ -612,13 +612,20 @@ FONT_SIZE = 14
 # ========================================================================================
 # 데이터 수집 함수
 # ========================================================================================
+def _strip_tz(idx):
+    """DatetimeIndex의 timezone을 제거해 naive로 변환"""
+    idx = pd.to_datetime(idx)
+    if idx.tz is not None:
+        return idx.tz_convert(None)
+    return idx
+
+
 def _parse_yf_to_close(data, tickers):
     """yfinance 다운로드 결과에서 종가만 추출해 ticker별 DataFrame 반환"""
     if data.empty:
         return pd.DataFrame()
     if len(tickers) == 1:
         if isinstance(data.columns, pd.MultiIndex):
-            # level 0 = field('Close'...) 인 경우 vs level 0 = ticker 인 경우 모두 처리
             level0 = data.columns.get_level_values(0).unique().tolist()
             if 'Close' in level0:
                 df = data['Close'].to_frame(name=tickers[0])
@@ -629,7 +636,7 @@ def _parse_yf_to_close(data, tickers):
         else:
             df = data[['Close']].copy()
             df.columns = [tickers[0]]
-        df.index = pd.to_datetime(df.index).tz_localize(None)
+        df.index = _strip_tz(df.index)
         return df
 
     # 다중 ticker: yfinance 버전에 따라 MultiIndex 방향이 다름
@@ -639,7 +646,6 @@ def _parse_yf_to_close(data, tickers):
     if isinstance(data.columns, pd.MultiIndex):
         level0 = data.columns.get_level_values(0).unique().tolist()
         if 'Close' in level0:
-            # level 0 = field 방향
             for ticker in tickers:
                 try:
                     if ticker in data.columns.get_level_values(1):
@@ -647,7 +653,6 @@ def _parse_yf_to_close(data, tickers):
                 except Exception:
                     pass
         else:
-            # level 0 = ticker 방향
             for ticker in tickers:
                 try:
                     if ticker in level0:
@@ -655,7 +660,7 @@ def _parse_yf_to_close(data, tickers):
                 except Exception:
                     pass
     if not result.empty:
-        result.index = pd.to_datetime(result.index).tz_localize(None)
+        result.index = _strip_tz(result.index)
     return result
 
 
@@ -666,11 +671,18 @@ def _download_single(ticker, **kwargs):
         if d.empty:
             return None
         if isinstance(d.columns, pd.MultiIndex):
-            d.columns = d.columns.get_level_values(0)
-        if 'Close' not in d.columns:
-            return None
-        s = d['Close'].copy()
-        s.index = pd.to_datetime(s.index).tz_localize(None)
+            level0 = d.columns.get_level_values(0).unique().tolist()
+            if 'Close' in level0:
+                s = d['Close'].iloc[:, 0] if d['Close'].ndim > 1 else d['Close']
+            else:
+                d.columns = level0
+                s = d['Close']
+        else:
+            if 'Close' not in d.columns:
+                return None
+            s = d['Close']
+        s = s.copy()
+        s.index = _strip_tz(s.index)
         return s
     except Exception:
         return None
