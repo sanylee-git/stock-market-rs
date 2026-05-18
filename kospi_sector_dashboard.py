@@ -1513,6 +1513,21 @@ def main():
 
         if batch_data.empty or benchmark_info['ticker'] not in batch_data.columns:
             st.error(f"❌ {bench_name} 데이터를 가져올 수 없습니다.")
+            with st.expander("🔍 디버그 정보 (임시)"):
+                st.write(f"**batch_data.empty:** {batch_data.empty}")
+                st.write(f"**찾는 ticker:** `{benchmark_info['ticker']}`")
+                if not batch_data.empty:
+                    st.write(f"**batch_data columns:** {list(batch_data.columns)}")
+                    st.write(f"**shape:** {batch_data.shape}")
+                try:
+                    import yfinance as _yf
+                    _test = _yf.download(benchmark_info['ticker'], period='5d', progress=False)
+                    st.write(f"**개별 다운로드 테스트 empty:** {_test.empty}")
+                    st.write(f"**columns:** {list(_test.columns) if not _test.empty else '없음'}")
+                    if not _test.empty and hasattr(_test.columns, 'levels'):
+                        st.write(f"**MultiIndex level0:** {_test.columns.get_level_values(0).unique().tolist()}")
+                except Exception as _e:
+                    st.write(f"**개별 다운로드 에러:** {_e}")
             return
 
         # 3. 컬럼명을 표시명으로 변경
