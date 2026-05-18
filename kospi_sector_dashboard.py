@@ -694,40 +694,47 @@ def get_batch_stock_data(tickers_tuple, start_date, end_date):
     tickers = list(tickers_tuple)
     if not tickers:
         return pd.DataFrame()
-    try:
-        # 1) 과거 데이터 (start ~ end)
-        raw = yf.download(tickers, start=start_date, end=end_date,
-                          progress=False, group_by='ticker', threads=True)
-        result = _parse_yf_to_close(raw, tickers)
 
-        # 배치에서 누락된 ticker는 개별 다운로드로 fallback
-        missing = [t for t in tickers if t not in result.columns]
-        for t in missing:
+    # 1) 배치 다운로드 (실패해도 아래 fallback이 반드시 실행되도록 분리)
+    result = pd.DataFrame()
+    try:
+        raw = yf.download(tickers, start=start_date, end=end_date,
+                          progress=False, group_by='ticker', threads=False)
+        result = _parse_yf_to_close(raw, tickers)
+    except Exception:
+        result = pd.DataFrame()
+
+    # 배치에서 누락된 ticker는 개별 다운로드 (배치 자체 실패 포함)
+    missing = [t for t in tickers if t not in result.columns]
+    for t in missing:
+        try:
             s = _download_single(t, start=start_date, end=end_date)
             if s is not None:
                 result[t] = s
-
-        # 2) 최근 5거래일 데이터 보완 → 오늘 당일 종가 확보
-        try:
-            recent_raw = yf.download(tickers, period='5d', interval='1d',
-                                     progress=False, group_by='ticker', threads=True)
-            recent = _parse_yf_to_close(recent_raw, tickers)
-            # 최근 데이터도 fallback
-            missing_recent = [t for t in tickers if t not in recent.columns]
-            for t in missing_recent:
-                s = _download_single(t, period='5d', interval='1d')
-                if s is not None:
-                    recent[t] = s
-            if not recent.empty:
-                new_rows = recent[~recent.index.isin(result.index)]
-                if not new_rows.empty:
-                    result = pd.concat([result, new_rows]).sort_index()
         except Exception:
             pass
 
-        return result
+    # 2) 최근 5거래일 데이터 보완 → 오늘 당일 종가 확보
+    try:
+        recent_raw = yf.download(tickers, period='5d', interval='1d',
+                                 progress=False, group_by='ticker', threads=False)
+        recent = _parse_yf_to_close(recent_raw, tickers)
+        missing_recent = [t for t in tickers if t not in recent.columns]
+        for t in missing_recent:
+            try:
+                s = _download_single(t, period='5d', interval='1d')
+                if s is not None:
+                    recent[t] = s
+            except Exception:
+                pass
+        if not recent.empty and not result.empty:
+            new_rows = recent[~recent.index.isin(result.index)]
+            if not new_rows.empty:
+                result = pd.concat([result, new_rows]).sort_index()
     except Exception:
-        return pd.DataFrame()
+        pass
+
+    return result
 
 
 @st.cache_data(ttl=3600)
