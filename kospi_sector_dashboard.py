@@ -1508,6 +1508,16 @@ def main():
                 if code not in ticker_info:
                     ticker_info[code] = f"[{sector_name}]{stock_info['name']}"
 
+        # ETF만 필터인데 벤치마크 외 종목이 0개인 경우 → 전체로 자동 fallback
+        if etf_only and len(ticker_info) <= 1:
+            st.warning("⚠️ 이 시장에는 ETF 종목이 없습니다. 전체 종목으로 표시합니다.")
+            for sector_name in selected_sectors:
+                sector = SECTORS[sector_name]
+                for stock_info in sector[market_key]:
+                    code = stock_info['code']
+                    if code not in ticker_info:
+                        ticker_info[code] = f"[{sector_name}]{stock_info['name']}"
+
         for custom in st.session_state.custom_stocks:
             code = custom['code']
             if code not in ticker_info:
@@ -1527,14 +1537,6 @@ def main():
         for ticker, display_name in ticker_info.items():
             if ticker in batch_data.columns:
                 all_data[display_name] = batch_data[ticker]
-
-        # 임시 디버그: 어떤 ticker가 로드됐는지 확인
-        with st.expander("🔍 디버그 정보 (임시)"):
-            loaded = [t for t in all_tickers if t in batch_data.columns]
-            missing_t = [t for t in all_tickers if t not in batch_data.columns]
-            st.write(f"**요청 티커 수:** {len(all_tickers)}")
-            st.write(f"**로드 성공:** {len(loaded)}개 → {loaded}")
-            st.write(f"**로드 실패:** {len(missing_t)}개 → {missing_t}")
 
     all_data = all_data.dropna(subset=[bench_name]).tail(period_days)
     all_data = all_data.ffill().bfill()
