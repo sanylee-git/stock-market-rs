@@ -1520,21 +1520,6 @@ def main():
 
         if batch_data.empty or benchmark_info['ticker'] not in batch_data.columns:
             st.error(f"❌ {bench_name} 데이터를 가져올 수 없습니다.")
-            with st.expander("🔍 디버그 정보 (임시)"):
-                st.write(f"**batch_data.empty:** {batch_data.empty}")
-                st.write(f"**찾는 ticker:** `{benchmark_info['ticker']}`")
-                if not batch_data.empty:
-                    st.write(f"**batch_data columns:** {list(batch_data.columns)}")
-                    st.write(f"**shape:** {batch_data.shape}")
-                try:
-                    import yfinance as _yf
-                    _test = _yf.download(benchmark_info['ticker'], period='5d', progress=False)
-                    st.write(f"**개별 다운로드 테스트 empty:** {_test.empty}")
-                    st.write(f"**columns:** {list(_test.columns) if not _test.empty else '없음'}")
-                    if not _test.empty and hasattr(_test.columns, 'levels'):
-                        st.write(f"**MultiIndex level0:** {_test.columns.get_level_values(0).unique().tolist()}")
-                except Exception as _e:
-                    st.write(f"**개별 다운로드 에러:** {_e}")
             return
 
         # 3. 컬럼명을 표시명으로 변경
@@ -1542,6 +1527,14 @@ def main():
         for ticker, display_name in ticker_info.items():
             if ticker in batch_data.columns:
                 all_data[display_name] = batch_data[ticker]
+
+        # 임시 디버그: 어떤 ticker가 로드됐는지 확인
+        with st.expander("🔍 디버그 정보 (임시)"):
+            loaded = [t for t in all_tickers if t in batch_data.columns]
+            missing_t = [t for t in all_tickers if t not in batch_data.columns]
+            st.write(f"**요청 티커 수:** {len(all_tickers)}")
+            st.write(f"**로드 성공:** {len(loaded)}개 → {loaded}")
+            st.write(f"**로드 실패:** {len(missing_t)}개 → {missing_t}")
 
     all_data = all_data.dropna(subset=[bench_name]).tail(period_days)
     all_data = all_data.ffill().bfill()
