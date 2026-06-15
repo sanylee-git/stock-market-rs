@@ -3972,43 +3972,35 @@ def main():
             {"code": "^GSPC",  "name": "S&P 500 (^GSPC)"},
             {"code": "^IXIC",  "name": "나스닥 (^IXIC)"},
             {"code": "^DJI",   "name": "다우존스 (^DJI)"},
-            # ── 단일종목 (이름 오름차순: ASCII → 가나다)
-            {"code": "QBTS",   "name": "D-Wave 퀀텀 (QBTS)"},
-            {"code": "GOOGL",  "name": "구글 알파벳 (GOOGL)"},
+            # ── 원자재
             {"code": "HG=F",   "name": "구리 현물 (Copper Futures)"},
             {"code": "GC=F",   "name": "금 현물 (Gold Futures)"},
-            {"code": "RGTI",   "name": "리게티컴퓨팅 (RGTI)"},
-            {"code": "MSFT",   "name": "마이크로소프트 (MSFT)"},
-            {"code": "BTC-USD", "name": "비트코인 (BTC-USD)"},
-            {"code": "AMZN",   "name": "아마존 (AMZN)"},
-            {"code": "IONQ",   "name": "아이온큐 (IONQ)"},
-            {"code": "NVDA",   "name": "엔비디아 (NVDA)"},
             {"code": "SI=F",   "name": "은 현물 (Silver Futures)"},
+            # ── 비트코인
+            {"code": "BTC-USD", "name": "비트코인 (BTC-USD)"},
+            # ── 이더리움
             {"code": "ETH-USD", "name": "이더리움 (ETH-USD)"},
-            {"code": "TSLA",   "name": "테슬라 (TSLA)"},
+            # ── 주식 본주: 개별종목 (이름 오름차순: ASCII → 가나다)
+            {"code": "GOOGL",  "name": "구글 알파벳 (GOOGL)"},
+            {"code": "MSFT",   "name": "마이크로소프트 (MSFT)"},
+            {"code": "AMZN",   "name": "아마존 (AMZN)"},
             {"code": "PLTR",   "name": "팔란티어 (PLTR)"},
-            # ── ETF 1배 (코드 오름차순)
+            # ── 주식 본주: ETF 1배 (코드 오름차순)
             {"code": "AIPO",   "name": "AIPO AI·IPO ETF"},
-            {"code": "ARKQ",   "name": "ARKQ ARK 자율주행/로봇 ETF"},
             {"code": "BLOK",   "name": "BLOK 블록체인 ETF"},
             {"code": "GRID",   "name": "GRID 스마트그리드 ETF"},
-            {"code": "NLR",    "name": "NLR 원자력 ETF"},
             {"code": "PTIR",   "name": "PTIR 테크인프라 ETF"},
             {"code": "QTUM",   "name": "QTUM 퀀텀컴퓨팅/AI ETF"},
-            {"code": "SHLD",   "name": "SHLD 방산테크 ETF"},
             {"code": "SOXX",   "name": "SOXX 반도체 ETF"},
             {"code": "TAN",    "name": "TAN 태양광 ETF"},
             {"code": "UFO",    "name": "UFO 우주항공 ETF"},
-            {"code": "XLU",    "name": "XLU 유틸리티 ETF"},
-            # ── ETF 2배 (코드 오름차순)
+            # ── 2배 레버리지 (코드 오름차순)
             {"code": "AMZU",   "name": "AMZU 아마존 2X"},
             {"code": "GGLL",   "name": "GGLL 구글 2X"},
             {"code": "MSFU",   "name": "MSFU 마이크로소프트 2X"},
-            {"code": "NVDL",   "name": "NVDL 엔비디아 2X"},
-            {"code": "TSLL",   "name": "TSLL 테슬라 2X"},
             {"code": "UGL",    "name": "UGL 금 2X"},
             {"code": "USD",    "name": "USD 반도체 2X (ProShares)"},
-            # ── ETF 3배 (코드 오름차순)
+            # ── 3배 레버리지 (코드 오름차순)
             {"code": "SOXL",   "name": "SOXL 반도체 3X"},
             {"code": "TECL",   "name": "TECL 테크 3X"},
             {"code": "TQQQ",   "name": "TQQQ 나스닥 3X"},
